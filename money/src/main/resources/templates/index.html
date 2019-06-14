@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Home page</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+</head>
+<body>
+<h1>환율 계산</h1>
+<div >
+    송금국가:
+<select th:field="*{sourceCountry}" id="sourceCountry">
+    <option value="">선택</option>
+    <option th:each="entry: ${sourceCountry}" th:attr="data-value=${entry.key}" th:value="${entry.key}" th:text="${entry.value}+'('+${entry.key}+')'"/>
+</select>
+</div>
+<div>
+    수취국가:
+<select th:field="*{currencyCountry}" id="currencyCountry">
+    <option value="">선택</option>
+    <option th:each="entry: ${currencyCountry}" th:attr="data-value=${entry.key}" th:value="${entry.key}" th:text="${entry.value}+'('+${entry.key}+')'"/>
+</select>
+</div>
+<div>
+    환율: <p id="currency" style="display:inline"></p>
+</div>
+
+<div>
+    송금액: <input id="transferMoney" /> <p id="source" style="display:inline"></p>
+</div>
+
+<div>
+    <button id="submitButton">Submit</button>
+</div>
+
+<div id="total">
+    수취금액은 <p id="totalAmount" style="display:inline"></p>
+</div>
+
+</body>
+</html>
+<script>
+    $(function() {
+
+        $("#total").hide();
+
+        $("#submitButton").on('click', function(){
+            console.log("here?")
+            var source = $("#sourceCountry").find(":selected").data("value");
+            var currency = $("#currencyCountry").find(":selected").data("value")
+            var transfer = $("#transferMoney").val();
+
+            if (validation(transfer, source)) {
+                if (source && currency) getInfo(source, currency, transfer);
+            }
+
+        });
+
+        $('select').on('change', function() {
+            var source = $("#sourceCountry").find(":selected").data("value");
+            var currency = $("#currencyCountry").find(":selected").data("value")
+
+            $("#source").text(source);
+            console.log(source && currency);
+            if(source && currency)  getInfo(source, currency)
+
+            // getInfo()
+        });
+
+    })
+
+    function validation(transfer, source) {
+
+        var valid = true;
+        if (transfer < 0 || !$.isNumeric(transfer)) valid = false;
+        if (source === "USD" && transfer > 10000) valid = false;
+
+        if (!valid) alert("송금액이 바르지 않습니다");
+
+        return valid;
+    }
+
+    function getInfo(source, currency, transferMoney) {
+        var money = transferMoney;
+
+        if(!transferMoney) money = 1;
+
+        var request ={source: source,
+        currencies: currency,
+        transferMoney: money};
+
+        console.log(request);
+
+        $.get( "exchange/info", request).done(function(data ) {
+
+            console.log(data)
+
+            var beforeCal = data.beforeCalculate[currency]+ " " + currency + "/" + source;
+            $("#currency").text(beforeCal);
+
+            if (transferMoney) {
+                console.log("here");
+
+                $("#total").show();
+                var total = data.currency[currency].split(".")[0] + ".00";
+
+                var afterCal = total + " " + currency + "입니다.";
+                $("#totalAmount").text(afterCal);
+            }
+
+        }).fail(function(data){
+            console.log(data);
+            var alertMessage = "";
+            if(!data) alertMessage = "오류가 발생하였습니다.";
+            alertMessage = data.responseJSON.message;
+            alert(alertMessage);
+        });
+    }
+</script>

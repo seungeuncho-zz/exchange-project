@@ -1,0 +1,25 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile project(':thirdparty:external-api')
+    compile project(':thirdparty:persistence')
+    compile project(':common')
+
+    implementation("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
+    implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
+}
+
+bootJar {
+    enabled = true
+}
+
+jar {
+    enabled = false
+}

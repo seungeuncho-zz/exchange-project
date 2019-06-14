@@ -1,0 +1,19 @@
+spring:
+  profiles:
+    active: local
+
+logging:
+  path: logs/exchange/
+  config: classpath:logback_default.xml
+
+#Actuator
+management.context-path: /actuators
+
+redis:
+  exchange:
+    port: 6379
+    host: localhost
+
+---
+spring:
+  profiles: local
